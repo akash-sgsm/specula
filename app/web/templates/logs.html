@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+  <title>Threat Logs</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <h1>Threat Logs</h1>
+  <table>
+    <tr><th>Time</th><th>Labels</th><th>Score</th><th>Screenshot</th></tr>
+    {% for e in events %}
+    <tr>
+      <td>{{ e.timestamp }}</td>
+      <td>{{ e.labels }}</td>
+      <td>{{ "%.2f"|format(e.score) }}</td>
+      <td><img src="/{{ e.image_path }}" width="240"></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <a class="btn" href="/">Back</a>
+</body>
+</html>
