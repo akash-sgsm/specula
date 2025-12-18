@@ -1,5 +1,5 @@
 import cv2
-from app.detection.models import YOLOModel
+from app.detection.models import YOLOModel, WeaponDetector
 from app.detection.features import extract_features, WEAPON_CLASSES
 from app.detection.fusion import MLPSynthesizer
 
@@ -7,7 +7,7 @@ class DualYOLOPipeline:
     def __init__(self):
         # Two complementary models (speed + accuracy)
         self.fast = YOLOModel("models/yolov8n.pt", conf=0.35, iou=0.45)
-        self.accurate = YOLOModel("models/yolov8s.pt", conf=0.35, iou=0.5)
+        self.accurate = WeaponDetector("models/yolov8s.pt", conf=0.45, iou=0.5)  # Enhanced for weapons
         self.fuser = MLPSynthesizer()
         self.prev_gray = None
 

@@ -1,10 +1,10 @@
 import cv2
 import time
-from app.detection.yolo import Detector
-from app.detection.fusion import ThreatScorer
+from app.detection.pipeline import DualYOLOPipeline
+from app.detection.threat_scorer import ThreatScorer
 from app.web.db import LogStore
 
-detector = Detector()
+pipeline = DualYOLOPipeline()
 scorer = ThreatScorer()
 logger = LogStore()
 
@@ -25,9 +25,11 @@ def frames(camera_source, threat_threshold):
             time.sleep(0.05)
             continue
 
-        dets = detector.detect(frame)
-        score, labels = scorer.score(dets)
-        overlay = detector.draw(frame.copy(), dets, score)
+        result = pipeline.process(frame)
+        dets = result['dets']
+        score = scorer.score_frame(dets)
+        overlay = result['overlay']
+        labels = result['labels']
 
         if score >= threat_threshold:
             logger.log_event(labels, score, overlay)
