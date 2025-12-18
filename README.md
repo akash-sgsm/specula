@@ -65,3 +65,5 @@ MIT License – Feel free to modify and distribute.
 
 ## 📧 Support
 For issues and contributions, visit the [GitHub repository](https://github.com/akash-sgsm/specula.git).
+
+thank u...
