@@ -4,7 +4,8 @@ load_dotenv()
 
 class Config:
     CAMERA_SOURCE = os.getenv("CAMERA_SOURCE", "0")
-    THREAT_THRESHOLD = float(os.getenv("THREAT_THRESHOLD", "0.65"))
+    # Lower threshold to catch more threats - can be tuned via .env
+    THREAT_THRESHOLD = float(os.getenv("THREAT_THRESHOLD", "0.55"))
     DATABASE_PATH = os.getenv("DATABASE_PATH", "smart_cctv.db")
     # Alerts
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")

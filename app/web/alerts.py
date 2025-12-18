@@ -2,6 +2,9 @@ import os
 from twilio.rest import Client
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 class AlertManager:
     def __init__(self):
@@ -43,3 +46,41 @@ class AlertManager:
         text = f"Threat detected! Score={score:.2f}, Labels={','.join(labels)}"
         self.send_sms(text)
         self.send_email("Automatic Threat Alert", text)
+
+    def send_alert_with_screenshot(self, labels, score, image_path):
+        text = f"Threat detected! Score={score:.2f}, Labels={labels}"
+        self.send_sms(text)
+        
+        email_body = f"""Threat Alert from Specula
+
+Threat Score: {score:.2f}
+Labels: {labels}
+
+Screenshot attached."""
+        
+        try:
+            if not all([self.smtp_server, self.smtp_user, self.smtp_pass, self.email_to]):
+                return False
+            
+            msg = MIMEMultipart()
+            msg["Subject"] = "Threat Alert with Screenshot"
+            msg["From"] = self.smtp_user
+            msg["To"] = self.email_to
+            msg.attach(MIMEText(email_body))
+            
+            if image_path and os.path.exists(image_path):
+                with open(image_path, "rb") as attachment:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                part.add_header("Content-Disposition", f"attachment; filename= {os.path.basename(image_path)}")
+                msg.attach(part)
+            
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as s:
+                s.starttls()
+                s.login(self.smtp_user, self.smtp_pass)
+                s.send_message(msg)
+            return True
+        except Exception as e:
+            print(f"Error sending email with screenshot: {e}")
+            return False

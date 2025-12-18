@@ -1,6 +1,8 @@
 body { font-family: Arial, sans-serif; margin: 24px; }
 h1 { margin-bottom: 16px; }
-.btn { margin-right: 12px; padding: 8px 12px; background: #1976d2; color: #fff; text-decoration: none; border-radius: 4px; }
+.btn { margin-right: 12px; padding: 8px 12px; background: #1976d2; color: #fff; text-decoration: none; border-radius: 4px; cursor: pointer; }
+.btn-small { padding: 6px 10px; background: #ff9800; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-small:hover { background: #e68900; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ddd; padding: 8px; }
 th { background: #f8f8f8; }

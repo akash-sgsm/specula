@@ -2,13 +2,16 @@ import numpy as np
 
 class ThreatScorer:
     def __init__(self, thresholds=None, buffer_size=5):
-        # Per-class thresholds - KNIFE DETECTION OPTIMIZED
+        # Per-class thresholds - OPTIMIZED FOR GUN & KNIFE DETECTION
         self.thresholds = thresholds or {
             "person": 0.5,
-            "knife": 0.4,      # Lower threshold for faster knife detection
-            "gun": 0.5,
-            "sword": 0.4,      # Also detect swords
-            "firearm": 0.5,
+            "knife": 0.35,      # Aggressive knife detection with shape verification
+            "gun": 0.40,        # Aggressive gun detection with shape verification
+            "pistol": 0.40,
+            "rifle": 0.40,
+            "sword": 0.35,
+            "firearm": 0.40,
+            "axe": 0.35,
             "fight": 0.7,
             "robbery": 0.7
         }
@@ -22,22 +25,38 @@ class ThreatScorer:
         """
         score = 0.0
 
-        # Per-class confidence checks
+        # Count weapons for context
+        weapon_count = 0
+
+        # Per-class confidence checks with weapon boost
         for det in detections:
-            cls, conf = det.get("class") or det.get("label"), det["conf"]
-            if cls in self.thresholds and conf > self.thresholds[cls]:
-                # WEAPON BOOST: Increase score weight for weapons
-                if cls.lower() in ["knife", "gun", "sword", "firearm"]:
-                    score += conf * 1.5  # 50% boost for weapons
-                else:
-                    score += conf
+            cls = det.get("class") or det.get("label")
+            conf = det["conf"]
+            
+            if cls and cls.lower() in self.thresholds:
+                threshold = self.thresholds[cls.lower()]
+                
+                if conf > threshold:
+                    # WEAPON DETECTION: Significantly boost threat score
+                    if cls.lower() in ["knife", "gun", "sword", "firearm", "pistol", "rifle", "axe"]:
+                        # Heavy weight on weapon detection
+                        score += conf * 2.0  # 100% boost for weapons (was 1.5x)
+                        weapon_count += 1
+                    else:
+                        score += conf
 
-        # Contextual boost: weapon + person nearby
-        persons = [d for d in detections if d.get("class", d.get("label")) == "person"]
-        weapons = [d for d in detections if d.get("class", d.get("label")).lower() in ["knife", "gun", "sword", "firearm"]]
+        # Contextual boost: weapon + person nearby = SEVERE THREAT
+        persons = [d for d in detections if (d.get("class") or d.get("label")) == "person"]
+        weapons = [d for d in detections if (d.get("class") or d.get("label")).lower() 
+                   in ["knife", "gun", "sword", "firearm", "pistol", "rifle", "axe"]]
+        
         if persons and weapons:
-            score += 0.8  # Increased from 0.5
-
+            score += 1.2  # Increased from 0.8 - critical threat indicator
+        
+        # Multiple weapons exponential increase
+        if weapon_count > 1:
+            score += weapon_count * 0.4
+        
         # Normalize score
         score = min(score, 1.0)
 
